@@ -12,7 +12,9 @@ pub fn main() !void {
         _ = try std.os.windows.WSAStartup(2, 2);
     }
 
-    var response = try web.fetch(allocator, "https://ziglang.org", .{});
+    var response = try web.fetch("https://ziglang.org", .{
+        .allocator = allocator
+    });
     defer response.close();
 
     try std.io.getStdOut().writer().print("{s}\n", .{response.body});

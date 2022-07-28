@@ -20,6 +20,8 @@ git clone https://github.com/Mbed-TLS/mbedtls -b v3.2.1 --single-branch --depth 
 
 # Credits
 
+mbedTLS - for TLS (HTTPS protocol)
+
 https://github.com/MasterQ32/zig-uri - for parsing URL
 
 https://github.com/mattnite/zig-mbedtls - for build script

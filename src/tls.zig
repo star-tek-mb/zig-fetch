@@ -80,8 +80,16 @@ pub const Stream = struct {
         mbedtls.mbedtls_ssl_set_bio(&self.ssl, self, write_callback, read_callback, null);
     }
 
-    pub fn set_hostname(self: *Stream, hostname: ?[:0]const u8) !void {
-        var err = mbedtls.mbedtls_ssl_set_hostname(&self.ssl, hostname.?);
+    pub fn set_hostname(self: *Stream, maybeHost: ?[]const u8) !void {
+        var err : c_int = undefined;
+
+        if (maybeHost) |host| {
+            var hostname = try std.cstr.addNullByte(self.allocator, host);
+            defer self.allocator.free(hostname);
+            err = mbedtls.mbedtls_ssl_set_hostname(&self.ssl, hostname.ptr);
+        } else {
+            err = mbedtls.mbedtls_ssl_set_hostname(&self.ssl, null);
+        }
         if (err != 0) {
             return error.HostnameSetFailed;
         }

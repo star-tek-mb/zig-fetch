@@ -44,12 +44,22 @@ pub const Response = struct {
     }
 };
 
-pub const FetchOptions = struct { method: Method = .GET, headers: []const Header = &[_]Header{}, body: ?[]const u8 = null };
+pub const FetchOptions = struct {
+    allocator: std.mem.Allocator,
+    method: Method = .GET,
+    headers: []const Header = &[_]Header{},
+    body: ?[]const u8 = null
+};
 
-pub fn fetch(allocator: std.mem.Allocator, url: []const u8, options: FetchOptions) !Response {
+pub fn fetch(url: []const u8, options: FetchOptions) !Response {
+    var allocator = options.allocator;
     var uri_comps = try uri.parse(url);
     uri_comps.scheme = if (uri_comps.scheme) |scheme| scheme else "https";
     uri_comps.port = if (std.mem.eql(u8, uri_comps.scheme.?, "https")) 443 else 80;
+
+    if (options.body != null and !options.method.requestHasBody()) {
+        return error.BodyNotAllowed;
+    }
 
     var content_length: []u8 = undefined;
     var request_headers = std.ArrayList(Header).init(allocator);
@@ -62,7 +72,7 @@ pub fn fetch(allocator: std.mem.Allocator, url: []const u8, options: FetchOption
         try request_headers.append(.{ .key = "Content-Length", .val = content_length });
     }
     defer request_headers.deinit();
-    defer if (options.body) |_| allocator.free(content_length);
+    defer if (options.body != null) allocator.free(content_length);
 
     var request = Request{ 
         .method = options.method,
@@ -71,24 +81,19 @@ pub fn fetch(allocator: std.mem.Allocator, url: []const u8, options: FetchOption
         .body = options.body
     };
 
+    var stream = try std.net.tcpConnectToHost(allocator, uri_comps.host.?, uri_comps.port.?);
+    defer stream.close();
+
     if (uri_comps.port.? == 443) {
-        var stream = try std.net.tcpConnectToHost(allocator, uri_comps.host.?, uri_comps.port.?);
-        defer stream.close();
-
-        var hostname = try std.cstr.addNullByte(allocator, uri_comps.host.?);
-        defer allocator.free(hostname);
-
         var tls_stream = try tls.Stream.init(allocator);
         defer tls_stream.deinit();
         try tls_stream.wrap(stream);
-        try tls_stream.set_hostname(hostname);
+        try tls_stream.set_hostname(uri_comps.host.?);
         try tls_stream.handshake();
 
         var client = HTTPSClient.init(allocator, tls_stream);
         return try client.request(&request);
     } else {
-        var stream = try std.net.tcpConnectToHost(allocator, uri_comps.host.?, uri_comps.port.?);
-        defer stream.close();
         var client = HTTPClient.init(allocator, stream);
         return try client.request(&request);
     }
