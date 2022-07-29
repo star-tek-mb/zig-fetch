@@ -1,6 +1,6 @@
 const builtin = @import("builtin");
 const std = @import("std");
-const web = @import("web.zig");
+const telegram = @import("telegram.zig");
 
 
 pub fn main() !void {
@@ -8,21 +8,13 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    if (builtin.os.tag == .windows) {
-        _ = try std.os.windows.WSAStartup(2, 2);
-    }
-
-    var formData = web.FormData.init(allocator);
-    defer formData.deinit();
-
-    formData.add("chat_id", "116797709");
-    formData.addBlob("document", @embedFile("cacert.pem"), "cacert.pem");
-
-    var response = try web.fetch("https://api.telegram.org/bot[TOKEN REDACTED]/sendDocument", .{
+    var bot = telegram.Bot.init(.{
         .allocator = allocator,
-        .method = .POST,
-        .headers = &[_]web.Header{formData.contentType()},
-        .body = try formData.toString()
+        .token = "[TOKEN]"
+    });
+    var response = try bot.request("sendMessage", .{
+        .chat_id = 116797709,
+        .text = "Hello world"
     });
     defer response.close();
 
