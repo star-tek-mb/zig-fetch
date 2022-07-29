@@ -12,8 +12,17 @@ pub fn main() !void {
         _ = try std.os.windows.WSAStartup(2, 2);
     }
 
-    var response = try web.fetch("https://ziglang.org", .{
-        .allocator = allocator
+    var formData = web.FormData.init(allocator);
+    defer formData.deinit();
+
+    formData.add("chat_id", "116797709");
+    formData.addBlob("document", @embedFile("cacert.pem"), "cacert.pem");
+
+    var response = try web.fetch("https://api.telegram.org/bot[TOKEN REDACTED]/sendDocument", .{
+        .allocator = allocator,
+        .method = .POST,
+        .headers = &[_]web.Header{formData.contentType()},
+        .body = try formData.toString()
     });
     defer response.close();
 

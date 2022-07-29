@@ -1,6 +1,7 @@
 const std = @import("std");
 const uri = @import("uri.zig");
 const tls = @import("tls.zig");
+pub usingnamespace @import("form.zig");
 
 pub const Method = std.http.Method;
 pub const Status = std.http.Status;
