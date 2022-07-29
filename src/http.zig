@@ -75,10 +75,19 @@ pub fn fetch(url: []const u8, options: FetchOptions) !Response {
     defer request_headers.deinit();
     defer if (options.body != null) allocator.free(content_length);
 
+    var path_enc = if (uri_comps.path.len == 0) "/" else uri_comps.path;
+
+    if (uri_comps.query) |query| {
+        var query_enc = try uri.escapeString(allocator, query);
+        defer allocator.free(query_enc);
+        path_enc = try std.mem.concat(allocator, u8, &[_][]const u8{path_enc, "?", query_enc});
+    }
+    defer if (uri_comps.query != null) allocator.free(path_enc);
+
     var request = Request{ 
         .method = options.method,
         .headers = request_headers.items,
-        .path = if (uri_comps.path.len == 0) "/" else uri_comps.path,
+        .path = path_enc,
         .body = options.body
     };
 
@@ -100,8 +109,8 @@ pub fn fetch(url: []const u8, options: FetchOptions) !Response {
     }
 }
 
-pub const HTTPClient = Client(std.net.Stream);
-pub const HTTPSClient = Client(*tls.Stream);
+const HTTPClient = Client(std.net.Stream);
+const HTTPSClient = Client(*tls.Stream);
 
 fn Client(comptime StreamType: type) type {
     return struct {

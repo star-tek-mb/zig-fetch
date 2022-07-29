@@ -1,5 +1,5 @@
 const std = @import("std");
-const web = @import("web.zig");
+const http = @import("http.zig");
 
 pub const FormBlob = struct {
     filename: []const u8,
@@ -22,13 +22,13 @@ pub const FormData = struct {
     boundary: u32,
     parameters: std.ArrayList(FormParameter),
     body: std.ArrayList(u8),
-    header: web.Header,
+    header: http.Header,
 
     pub fn init(allocator: std.mem.Allocator) FormData {
         var randomGenerator = std.rand.DefaultPrng.init(@intCast(u64, std.time.timestamp()));
         var boundary = randomGenerator.random().intRangeAtMost(u32, 10000000, 99999999);
         var boundary_string = std.fmt.allocPrint(allocator, "multipart/form-data; boundary=fetch{}", .{boundary}) catch unreachable;
-        var header = web.Header{ .key = "Content-Type", .val = boundary_string};
+        var header = http.Header{ .key = "Content-Type", .val = boundary_string};
         return .{
             .allocator = allocator,
             .boundary = boundary,
@@ -56,7 +56,7 @@ pub const FormData = struct {
         self.parameters.append(.{ .key = key, .val = .{ .blob = .{ .filename = filename, .content = content } }}) catch unreachable;
     }
 
-    pub fn contentType(self: *FormData) web.Header {
+    pub fn contentType(self: *FormData) http.Header {
         return self.header;
     }
 
