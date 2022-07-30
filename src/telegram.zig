@@ -1,6 +1,7 @@
 const std = @import("std");
+const json = @import("json.zig");
 const http = @import("http.zig");
-pub usingnamespace @import("telegram/types.zig");
+pub const types = @import("telegram/types.zig");
 
 pub const BotOptions = struct {
     allocator: std.mem.Allocator,
@@ -18,17 +19,16 @@ pub const Bot = struct {
         };
     }
 
-    pub fn request(self: *Bot, method: []const u8, parameters: anytype) !http.Response {
-        const T = @TypeOf(parameters);
-        const info = @typeInfo(T);
-        if (info != .Struct) {
+    pub fn request(self: *Bot, method: []const u8, parameters: anytype, comptime T: type) !types.APIResponse(T) {
+        const type_info = @typeInfo(@TypeOf(parameters));
+        if (type_info != .Struct) {
             @compileError("send request accepts struct");
         }
 
         var formdata = http.FormData.init(self.allocator);
         defer formdata.deinit();
 
-        inline for (info.Struct.fields) |field| {
+        inline for (type_info.Struct.fields) |field| {
             switch (@typeInfo(field.field_type)) {
                 .Int, .ComptimeInt => {
                     var val = try std.fmt.allocPrint(self.allocator, "{}", .{@field(parameters, field.name)});
@@ -40,9 +40,21 @@ pub const Bot = struct {
                         formdata.add(field.name, val);
                     }
                 },
-                else => {},
+                .Union => {
+                    const val = @field(parameters, field.name);
+                    if (@TypeOf(val) == types.UploadFile) {
+                        const uploadType = std.meta.activeTag(val);
+                        if (uploadType == types.UploadFile.blob) {
+                            formdata.addBlob(field.name, val.blob.content, val.blob.filename);
+                        } else if (uploadType == types.UploadFile.filepath) {
+                            formdata.addFile(field.name, val.filepath);
+                        }
+                    }
+                },
+                else => {}
             }
         }
+
         defer {
             for (formdata.parameters.items) |parameter| {
                 switch (parameter.val) {
@@ -60,6 +72,40 @@ pub const Bot = struct {
             .headers = &[_]http.Header{formdata.contentType()},
             .body = try formdata.toString()
         });
-        return response;
+        defer response.close();
+
+        @setEvalBranchQuota(2000000);
+        var json_stream = json.TokenStream.init(response.body);
+        var ret = try json.parse(types.APIResponse(T), &json_stream, .{
+            .allocator = self.allocator,
+            .ignore_unknown_fields = true
+        });
+        errdefer json.parseFree(types.APIResponse(T), ret, .{
+            .allocator = self.allocator,
+            .ignore_unknown_fields = true
+        });
+
+        if (!ret.ok) {
+            std.log.debug("error_code: {}, description {s}", .{ret.error_code, ret.description});
+            return error.ApiError;
+        }
+
+        return ret;
+    }
+
+    pub fn sendMessage(self: *Bot, parameters: anytype) !*types.Message {
+        return (try self.request("sendMessage", parameters, types.Message)).result.?;
+    }
+
+    pub fn sendPhoto(self: *Bot, parameters: anytype) !*types.Message {
+        return (try self.request("sendPhoto", parameters, types.Message)).result.?;
+    }
+
+    pub fn release(self: *Bot, pointer: anytype) void {
+        var response = @fieldParentPtr(types.APIResponse(@TypeOf(pointer.*)), "result", &@ptrCast(?@TypeOf(pointer), pointer));
+        json.parseFree(types.APIResponse(@TypeOf(pointer.*)), response.*, .{
+            .allocator = self.allocator,
+            .ignore_unknown_fields = true
+        });
     }
 };

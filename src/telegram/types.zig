@@ -1,18 +1,26 @@
 const std = @import("std");
 
-pub fn APIResponse(comptime T: type) type {
-    return struct {
-        ok: bool,
-        result: T,
-        error_code: ?[]const u8,
-        description: ?[]const u8
-    };
-}
-
 pub const ID = union(enum) {
     integer: i64,
     string: []const u8
 };
+
+pub const UploadFile = union(enum) {
+    filepath: []const u8,
+    blob: struct {
+        filename: []const u8,
+        content: []const u8   
+    }
+};
+
+pub fn APIResponse(comptime T: type) type {
+    return struct {
+        ok: bool,
+        result: ?*T = null,
+        error_code: u16,
+        description: ?[]const u8
+    };
+}
 
 pub const User = struct {
     id: i64,
@@ -47,19 +55,19 @@ pub const Chat = struct {
 
 pub const Message = struct {
     message_id: i64,
-    from: ?User,
-    sender_chat: ?Chat,
+    from: ?*User = null,
+    sender_chat: ?*Chat = null,
     date: u64,
-    chat: Chat,
-    forward_from: ?User,
-    forward_from_chat: ?Chat,
+    chat: *Chat,
+    forward_from: ?*User = null,
+    forward_from_chat: ?*Chat = null,
     forward_from_message_id: ?i64,
     forward_signature: ?[]const u8,
     forward_sender_name: ?[]const u8,
     forward_date: ?u64,
     is_automatic_forward: ?bool,
-    reply_to_message: ?Message,
-    via_bot: ?User,
+    reply_to_message: ?*Message = null,
+    via_bot: ?*User = null,
     edit_date: ?u64,
     has_protected_content: ?bool,
     media_group_id: ?[]const u8,
