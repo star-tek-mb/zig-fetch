@@ -2,6 +2,8 @@
 
 Make fetch like api available to zig
 
+Experiment with various web APIs. Make a wrapper of Telegram Bot API.
+
 # Prerequisites
 
 Install mbedtls
@@ -9,6 +11,10 @@ Install mbedtls
 ```
 git clone https://github.com/Mbed-TLS/mbedtls -b v3.2.1 --single-branch --depth 1
 ```
+
+# For usage
+
+See src/main.zig file
 
 # TODO
 
