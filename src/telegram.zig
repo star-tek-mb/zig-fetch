@@ -21,16 +21,14 @@ pub const Bot = struct {
 
     pub fn request(self: *Bot, method: []const u8, parameters: anytype, comptime T: type) !types.APIResponse(T) {
         const type_info = @typeInfo(@TypeOf(parameters));
-        if (type_info != .Struct) {
-            @compileError("send request accepts struct");
-        }
+        if (type_info != .Struct) @compileError("send request accepts struct");
 
         var formdata = http.FormData.init(self.allocator);
         defer formdata.deinit();
 
         inline for (type_info.Struct.fields) |field| {
             switch (@typeInfo(field.field_type)) {
-                .Int, .ComptimeInt => {
+                .Int, .ComptimeInt, .Float, .ComptimeFloat => {
                     var val = try std.fmt.allocPrint(self.allocator, "{}", .{@field(parameters, field.name)});
                     formdata.add(field.name, val);
                 },
