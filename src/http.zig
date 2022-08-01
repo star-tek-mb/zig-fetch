@@ -49,7 +49,7 @@ pub const FetchOptions = struct {
     allocator: std.mem.Allocator,
     method: Method = .GET,
     headers: []const Header = &[_]Header{},
-    body: ?[]const u8 = null
+    body: ?[]const u8
 };
 
 pub fn fetch(url: []const u8, options: FetchOptions) !Response {
