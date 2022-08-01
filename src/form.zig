@@ -90,7 +90,9 @@ pub const FormData = struct {
                 }
             }
         }
-        try writer.print("--fetch{}--\r\n", .{ self.boundary });
+        if (self.parameters.items.len > 0) {
+            try writer.print("--fetch{}--\r\n", .{ self.boundary });
+        }
         return self.body.items;
     }
 };
