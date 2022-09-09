@@ -33,7 +33,7 @@ pub const Bot = struct {
                     formdata.add(field.name, val);
                 },
                 .Pointer => |ptr_info| {
-                    if (@typeInfo(ptr_info.child) == .Array and @typeInfo(ptr_info.child).Array.child == u8) {
+                    if (ptr_info.size == .Slice and ptr_info.child == u8) {
                         var val = try self.allocator.dupe(u8, @field(parameters, field.name));
                         formdata.add(field.name, val);
                     }
@@ -82,145 +82,149 @@ pub const Bot = struct {
             .allocator = self.allocator,
             .ignore_unknown_fields = true
         });
-
+        try std.io.getStdOut().writer().print("{any}\n", .{parameters});
+        try std.io.getStdOut().writer().print("{?s}\n", .{ret.description});
         if (!ret.ok) {
-            std.log.debug("error_code: {}, description {s}", .{ret.error_code, ret.description});
             return error.ApiError;
         }
 
         return ret;
     }
 
-    pub fn getMe(self: *Bot) !*types.User {
+    pub fn getUpdates(self: *Bot, parameters: anytype) ![]types.Update {
+        return (try self.request("getUpdates", parameters, []types.Update)).result.?;
+    }
+
+    pub fn getMe(self: *Bot) !types.User {
         return (try self.request("getMe", .{}, types.User)).result.?;
     }
 
-    pub fn logOut(self: *Bot) !*bool {
+    pub fn logOut(self: *Bot) !bool {
         return (try self.request("logOut", .{}, bool)).result.?;
     }
 
-    pub fn close(self: *Bot) !*bool {
+    pub fn close(self: *Bot) !bool {
         return (try self.request("close", .{}, bool)).result.?;
     }
 
-    pub fn sendMessage(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendMessage(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendMessage", parameters, types.Message)).result.?;
     }
 
-    pub fn forwardMessage(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn forwardMessage(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("forwardMessage", parameters, types.Message)).result.?;
     }
 
-    pub fn copyMessage(self: *Bot, parameters: anytype) !*types.MessageId {
+    pub fn copyMessage(self: *Bot, parameters: anytype) !types.MessageId {
         return (try self.request("copyMessage", parameters, types.MessageId)).result.?;
     }
 
-    pub fn sendPhoto(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendPhoto(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendPhoto", parameters, types.Message)).result.?;
     }
 
-    pub fn sendAudio(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendAudio(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendAudio", parameters, types.Message)).result.?;
     }
 
-    pub fn sendDocument(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendDocument(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendDocument", parameters, types.Message)).result.?;
     }
 
-    pub fn sendVideo(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendVideo(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendVideo", parameters, types.Message)).result.?;
     }
 
-    pub fn sendAnimation(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendAnimation(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendAnimation", parameters, types.Message)).result.?;
     }
 
-    pub fn sendVoice(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendVoice(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendVoice", parameters, types.Message)).result.?;
     }
 
-    pub fn sendVideoNote(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendVideoNote(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendVideoNote", parameters, types.Message)).result.?;
     }
 
     // TODO: handle media array
-    pub fn sendMediaGroup(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendMediaGroup(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendMediaGroup", parameters, types.Message)).result.?;
     }
 
-    pub fn sendLocation(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendLocation(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendLocation", parameters, types.Message)).result.?;
     }
 
     // TODO: handle Message or bool
     // On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
-    pub fn editMessageLiveLocation(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn editMessageLiveLocation(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("editMessageLiveLocation", parameters, types.Message)).result.?;
     }
 
     // TODO: handle Message or bool
     // On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
-    pub fn stopMessageLiveLocation(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn stopMessageLiveLocation(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("stopMessageLiveLocation", parameters, types.Message)).result.?;
     }
 
-    pub fn sendVenue(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendVenue(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendVenue", parameters, types.Message)).result.?;
     }
 
-    pub fn sendContact(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendContact(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendContact", parameters, types.Message)).result.?;
     }
 
-    pub fn sendPoll(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendPoll(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendPoll", parameters, types.Message)).result.?;
     }
 
-    pub fn sendDice(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendDice(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendDice", parameters, types.Message)).result.?;
     }
 
-    pub fn sendChatAction(self: *Bot, parameters: anytype) !*types.Message {
+    pub fn sendChatAction(self: *Bot, parameters: anytype) !types.Message {
         return (try self.request("sendChatAction", parameters, types.Message)).result.?;
     }
 
-    pub fn getUserProfilePhotos(self: *Bot, parameters: anytype) !*types.UserProfilePhotos {
+    pub fn getUserProfilePhotos(self: *Bot, parameters: anytype) !types.UserProfilePhotos {
         return (try self.request("getUserProfilePhotos", parameters, types.UserProfilePhotos)).result.?;
     }
 
-    pub fn getFile(self: *Bot, parameters: anytype) !*types.File {
+    pub fn getFile(self: *Bot, parameters: anytype) !types.File {
         return (try self.request("getFile", parameters, types.File)).result.?;
     }
 
-    pub fn banChatMember(self: *Bot, parameters: anytype) !*bool {
+    pub fn banChatMember(self: *Bot, parameters: anytype) !bool {
         return (try self.request("banChatMember", parameters, bool)).result.?;
     }
 
-    pub fn unbanChatMember(self: *Bot, parameters: anytype) !*bool {
+    pub fn unbanChatMember(self: *Bot, parameters: anytype) !bool {
         return (try self.request("unbanChatMember", parameters, bool)).result.?;
     }
 
-    pub fn restrictChatMember(self: *Bot, parameters: anytype) !*bool {
+    pub fn restrictChatMember(self: *Bot, parameters: anytype) !bool {
         return (try self.request("restrictChatMember", parameters, bool)).result.?;
     }
 
-    pub fn promoteChatMember(self: *Bot, parameters: anytype) !*bool {
+    pub fn promoteChatMember(self: *Bot, parameters: anytype) !bool {
         return (try self.request("promoteChatMember", parameters, bool)).result.?;
     }
 
-    pub fn setChatAdministratorCustomTitle(self: *Bot, parameters: anytype) !*bool {
+    pub fn setChatAdministratorCustomTitle(self: *Bot, parameters: anytype) !bool {
         return (try self.request("setChatAdministratorCustomTitle", parameters, bool)).result.?;
     }
 
-    pub fn banChatSenderChat(self: *Bot, parameters: anytype) !*bool {
+    pub fn banChatSenderChat(self: *Bot, parameters: anytype) !bool {
         return (try self.request("banChatSenderChat", parameters, bool)).result.?;
     }
 
-    pub fn unbanChatSenderChat(self: *Bot, parameters: anytype) !*bool {
+    pub fn unbanChatSenderChat(self: *Bot, parameters: anytype) !bool {
         return (try self.request("unbanChatSenderChat", parameters, bool)).result.?;
     }
 
-    pub fn setChatPermissions(self: *Bot, parameters: anytype) !*bool {
+    pub fn setChatPermissions(self: *Bot, parameters: anytype) !bool {
         return (try self.request("setChatPermissions", parameters, bool)).result.?;
     }
 
@@ -229,13 +233,12 @@ pub const Bot = struct {
         return (try self.request("exportChatInviteLink", parameters, []const u8)).result.?;
     }
 
-    pub fn createChatInviteLink(self: *Bot, parameters: anytype) !*types.ChatInviteLink {
+    pub fn createChatInviteLink(self: *Bot, parameters: anytype) !types.ChatInviteLink {
         return (try self.request("createChatInviteLink", parameters, types.ChatInviteLink)).result.?;
     }
 
-    pub fn release(self: *Bot, pointer: anytype) void {
-        var response = @fieldParentPtr(types.APIResponse(@TypeOf(pointer.*)), "result", &@ptrCast(?@TypeOf(pointer), pointer));
-        json.parseFree(types.APIResponse(@TypeOf(pointer.*)), response.*, .{
+    pub fn release(self: *Bot, data: anytype) void {
+        json.parseFree(@TypeOf(data), data, .{
             .allocator = self.allocator,
             .ignore_unknown_fields = true
         });

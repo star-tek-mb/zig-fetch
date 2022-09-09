@@ -18,19 +18,37 @@ pub const UploadFile = union(enum) {
 pub fn APIResponse(comptime T: type) type {
     return struct {
         ok: bool,
-        result: ?*T = null,
+        result: ?T,
         error_code: ?u16,
-        description: ?[]const u8
+        description: ?[]const u8 = null
     };
 }
+
+pub const Update = struct {
+    update_id: i64,
+    message: ?*Message = null,
+    edited_message: ?*Message = null,
+    channel_post: ?*Message = null,
+    edited_channel_post: ?*Message = null,
+    //inline_query: ?void,
+    //chosen_inline_result: ?void,
+    callback_query: ?*CallbackQuery = null,
+    //shipping_query: ?void
+    //precheckout_query: ?void,
+    poll: ?*Poll = null,
+    poll_answer: ?*PollAnswer = null,
+    my_chat_member: ?*ChatMemberUpdated = null,
+    chat_member: ?*ChatMemberUpdated = null,
+    chat_join_request: ?*ChatJoinRequest = null
+};
 
 pub const User = struct {
     id: i64,
     is_bot: bool,
     first_name: []const u8,
-    last_name: ?[]const u8,
-    username: ?[]const u8,
-    language_code: ?[]const u8,
+    last_name: ?[]const u8 = null,
+    username: ?[]const u8 = null,
+    language_code: ?[]const u8 = null,
     is_premium: ?bool,
     added_to_attachment_menu: ?bool,
     can_join_groups: ?bool,
@@ -48,23 +66,23 @@ pub const ChatType = enum {
 pub const Chat = struct {
     id: i64,
     @"type": ChatType,
-    title: ?[]const u8,
-    username: ?[]const u8,
-    first_name: ?[]const u8,
-    last_name: ?[]const u8,
+    title: ?[]const u8 = null,
+    username: ?[]const u8 = null,
+    first_name: ?[]const u8 = null,
+    last_name: ?[]const u8 = null,
     photo: ?*ChatPhoto = null,
-    bio: ?[]const u8,
+    bio: ?[]const u8 = null,
     has_private_forwards: ?bool,
     join_to_send_messages: ?bool,
     join_by_request: ?bool,
-    description: ?[]const u8,
-    invite_link: ?[]const u8,
+    description: ?[]const u8 = null,
+    invite_link: ?[]const u8 = null,
     pinned_message: ?*Message = null,
     permissions: ?*ChatPermissions = null,
     slow_mode_delay: ?u64,
     message_auto_delete_time: ?u64,
     has_protected_content: ?bool,
-    sticker_set_name: ?[]const u8,
+    sticker_set_name: ?[]const u8 = null,
     can_set_sticker_set: ?bool,
     linked_chat_id: ?i64,
     location: ?*ChatLocation = null
@@ -79,38 +97,38 @@ pub const Message = struct {
     forward_from: ?*User = null,
     forward_from_chat: ?*Chat = null,
     forward_from_message_id: ?i64,
-    forward_signature: ?[]const u8,
-    forward_sender_name: ?[]const u8,
+    forward_signature: ?[]const u8 = null,
+    forward_sender_name: ?[]const u8 = null,
     forward_date: ?i64,
     is_automatic_forward: ?bool,
     reply_to_message: ?*Message = null,
     via_bot: ?*User = null,
     edit_date: ?i64,
     has_protected_content: ?bool,
-    media_group_id: ?[]const u8,
-    author_signature: ?[]const u8,
-    text: ?[]const u8,
-    entities: ?[]MessageEntity,
+    media_group_id: ?[]const u8 = null,
+    author_signature: ?[]const u8 = null,
+    text: ?[]const u8 = null,
+    entities: ?[]MessageEntity = null,
     animation: ?*Animation = null,
     audio: ?*Audio = null,
     document: ?*Document = null,
-    photo: ?[]PhotoSize,
+    photo: ?[]PhotoSize = null,
     //sticker: ?void,
     video: ?*Video = null,
     video_note: ?*VideoNote = null,
     voice: ?*Voice = null,
-    caption: ?[]const u8,
-    caption_entities: ?[]MessageEntity,
+    caption: ?[]const u8 = null,
+    caption_entities: ?[]MessageEntity = null,
     contact: ?*Contact = null,
     dice: ?*Dice = null,
     //game: ?void,
     poll: ?*Poll = null,
     venue: ?*Venue = null,
     location: ?*Location = null,
-    new_chat_members: ?[]User,
+    new_chat_members: ?[]User = null,
     left_chat_member: ?*User = null,
-    new_chat_title: ?[]const u8,
-    new_chat_photo: ?[]PhotoSize,
+    new_chat_title: ?[]const u8 = null,
+    new_chat_photo: ?[]PhotoSize = null,
     delete_chat_photo: ?bool,
     group_chat_created: ?bool,
     supergroup_chat_created: ?bool,
@@ -121,7 +139,7 @@ pub const Message = struct {
     pinned_message: ?*Message = null,
     //invoice: ?void,
     //successful_payment: ?void,
-    connected_website: ?[]const u8,
+    connected_website: ?[]const u8 = null,
     //passport_data: ?void,
     proximity_alert_triggered: ?*ProximityAlertTriggered = null,
     video_chat_scheduled: ?*VideoChatScheduled = null,
@@ -159,9 +177,9 @@ pub const MessageEntity = struct {
     @"type": MessageEntityType,
     offset: usize,
     length: usize,
-    url: ?[]const u8,
+    url: ?[]const u8 = null,
     user: ?*User = null,
-    language: ?[]const u8
+    language: ?[]const u8 = null
 };
 
 pub const PhotoSize = struct {
@@ -179,8 +197,8 @@ pub const Animation = struct {
     height: usize,
     duration: usize,
     thumb: ?*PhotoSize = null,
-    file_name: ?[]const u8,
-    mime_type: ?[]const u8,
+    file_name: ?[]const u8 = null,
+    mime_type: ?[]const u8 = null,
     file_size: ?usize
 };
 
@@ -188,10 +206,10 @@ pub const Audio = struct {
     file_id: []const u8,
     file_unique_id: []const u8,
     duration: usize,
-    performer: ?[]const u8,
-    title: ?[]const u8,
-    file_name: ?[]const u8,
-    mime_type: ?[]const u8,
+    performer: ?[]const u8 = null,
+    title: ?[]const u8 = null,
+    file_name: ?[]const u8 = null,
+    mime_type: ?[]const u8 = null,
     file_size: ?usize,
     thumb: ?*PhotoSize = null,
 };
@@ -200,8 +218,8 @@ pub const Document = struct {
     file_id: []const u8,
     file_unique_id: []const u8,
     thumb: ?*PhotoSize = null,
-    file_name: ?[]const u8,
-    mime_type: ?[]const u8,
+    file_name: ?[]const u8 = null,
+    mime_type: ?[]const u8 = null,
     file_size: ?usize,
 };
 
@@ -212,8 +230,8 @@ pub const Video = struct {
     height: usize,
     duration: usize,
     thumb: ?*PhotoSize = null,
-    file_name: ?[]const u8,
-    mime_type: ?[]const u8,
+    file_name: ?[]const u8 = null,
+    mime_type: ?[]const u8 = null,
     file_size: ?usize
 };
 
@@ -230,14 +248,14 @@ pub const Voice = struct {
     file_id: []const u8,
     file_unique_id: []const u8,
     duration: usize,
-    mime_type: ?[]const u8,
+    mime_type: ?[]const u8 = null,
     file_size: ?usize
 };
 
 pub const Contact = struct {
     phone_number: []const u8,
     first_name: []const u8,
-    last_name: ?[]const u8,
+    last_name: ?[]const u8 = null,
     user_id: ?i64,
     vcard: []const u8
 };
@@ -273,8 +291,8 @@ pub const Poll = struct {
     @"type": PollType,
     allows_multiple_answers: bool,
     correct_option_id: ?i64,
-    explanation: ?[]const u8,
-    explanation_entities: ?[]MessageEntity,
+    explanation: ?[]const u8 = null,
+    explanation_entities: ?[]MessageEntity = null,
     open_period: ?usize,
     close_date: ?i64
 };
@@ -292,10 +310,10 @@ pub const Venue = struct {
     location: *Location,
     title: []const u8,
     address: []const u8,
-    foursquare_id: ?[]const u8,
-    foursquare_type: ?[]const u8,
-    google_place_id: ?[]const u8,
-    google_place_type: ?[]const u8
+    foursquare_id: ?[]const u8 = null,
+    foursquare_type: ?[]const u8 = null,
+    google_place_id: ?[]const u8 = null,
+    google_place_type: ?[]const u8 = null
 };
 
 pub const WebAppData = struct {
@@ -336,7 +354,7 @@ pub const File = struct {
     file_id: []const u8,
     file_unique_id: []const u8,
     file_size: ?usize,
-    file_path: ?[]const u8
+    file_path: ?[]const u8 = null
 };
 
 pub const WebAppInfo = struct {
@@ -347,7 +365,7 @@ pub const ReplyKeyboardMarkup = struct {
     keyboard: [][]KeyboardButton,
     resize_keyboard: ?bool,
     one_time_keyboard: ?bool,
-    input_field_placeholder: ?[]const u8,
+    input_field_placeholder: ?[]const u8 = null,
     selective: ?bool
 };
 
@@ -374,20 +392,20 @@ pub const InlineKeyboardMarkup = struct {
 
 pub const InlineKeyboardButton = struct {
     text: []const u8,
-    url: ?[]const u8,
-    callback_data: ?[]const u8,
+    url: ?[]const u8 = null,
+    callback_data: ?[]const u8 = null,
     web_app: ?*WebAppInfo = null,
     login_url: ?*LoginUrl = null,
-    switch_inline_query: ?[]const u8,
-    switch_inline_query_current_chat: ?[]const u8,
+    switch_inline_query: ?[]const u8 = null,
+    switch_inline_query_current_chat: ?[]const u8 = null,
     //callback_game: ?void,
     pay: ?bool
 };
 
 pub const LoginUrl = struct {
     url: []const u8,
-    forward_text: ?[]const u8,
-    bot_username: ?[]const u8,
+    forward_text: ?[]const u8 = null,
+    bot_username: ?[]const u8 = null,
     request_write_access: ?bool
 };
 
@@ -395,15 +413,15 @@ pub const CallbackQuery = struct {
     id: []const u8,
     from: *User,
     message: ?*Message = null,
-    inline_message_id: ?[]const u8,
-    chat_instance: ?[]const u8,
-    data: ?[]const u8,
-    game_short_name: ?[]const u8
+    inline_message_id: ?[]const u8 = null,
+    chat_instance: ?[]const u8 = null,
+    data: ?[]const u8 = null,
+    game_short_name: ?[]const u8 = null
 };
 
 pub const ForceReply = struct {
     force_reply: bool,
-    input_field_placeholder: ?[]const u8,
+    input_field_placeholder: ?[]const u8 = null,
     selective: ?bool
 };
 
@@ -420,7 +438,7 @@ pub const ChatInviteLink = struct {
     creates_join_request: bool,
     is_primary: bool,
     is_revoked: bool,
-    name: ?[]const u8,
+    name: ?[]const u8 = null,
     expire_date: ?i64,
     member_limit: ?u32,
     pending_join_request_count: ?usize
@@ -462,7 +480,7 @@ pub const ChatMemberOwner = struct {
     status: ChatMemberType,
     user: *User,
     is_anonymous: bool,
-    custom_title: ?[]const u8
+    custom_title: ?[]const u8 = null
 };
 
 pub const ChatMemberAdministrator = struct {
@@ -480,7 +498,7 @@ pub const ChatMemberAdministrator = struct {
     can_post_messages: ?bool,
     can_edit_messages: ?bool,
     can_pin_messages: ?bool,
-    custom_title: ?[]const u8
+    custom_title: ?[]const u8 = null
 };
 
 pub const ChatMemberMember = struct {
@@ -527,7 +545,7 @@ pub const ChatJoinRequest = struct {
     chat: *Chat,
     from: *User,
     date: i64,
-    bio: ?[]const u8,
+    bio: ?[]const u8 = null,
     invite_link: ?*ChatInviteLink = null
 };
 

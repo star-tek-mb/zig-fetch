@@ -1342,6 +1342,7 @@ fn ParseInternalError(comptime T: type) type {
 }
 
 fn ParseInternalErrorImpl(comptime T: type, comptime inferred_types: []const type) type {
+    @setEvalBranchQuota(2000000);
     for (inferred_types) |ty| {
         if (T == ty) return error{};
     }

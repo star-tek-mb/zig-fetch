@@ -28,7 +28,7 @@ pub fn create(b: *Builder, target: std.zig.CrossTarget, mode: std.builtin.Mode) 
     ret.setBuildMode(mode);
     ret.addIncludeDir(include_dir);
     ret.addIncludeDir(library_include);
-    ret.addCSourceFiles(srcs, &.{"-gdwarf-4"});
+    ret.addCSourceFiles(srcs, &.{});
     ret.linkLibC();
 
     if (target.isWindows()) {
