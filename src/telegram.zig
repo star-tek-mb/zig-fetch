@@ -5,7 +5,7 @@ pub const types = @import("telegram/types.zig");
 
 pub const BotOptions = struct {
     allocator: std.mem.Allocator,
-    token: []const u8
+    token: []const u8,
 };
 
 pub const Bot = struct {
@@ -13,10 +13,7 @@ pub const Bot = struct {
     token: []const u8,
 
     pub fn init(options: BotOptions) Bot {
-        return Bot{
-            .allocator = options.allocator,
-            .token = options.token
-        };
+        return Bot{ .allocator = options.allocator, .token = options.token };
     }
 
     pub fn request(self: *Bot, method: []const u8, parameters: anytype, comptime T: type) !types.APIResponse(T) {
@@ -40,16 +37,16 @@ pub const Bot = struct {
                 },
                 .Union => {
                     const val = @field(parameters, field.name);
-                    if (@TypeOf(val) == types.UploadFile) {
-                        const uploadType = std.meta.activeTag(val);
-                        if (uploadType == types.UploadFile.blob) {
+                    switch (val) {
+                        .blob => {
                             formdata.addBlob(field.name, val.blob.content, val.blob.filename);
-                        } else if (uploadType == types.UploadFile.filepath) {
+                        },
+                        .filepath => {
                             formdata.addFile(field.name, val.filepath);
-                        }
+                        },
                     }
                 },
-                else => {}
+                else => {},
             }
         }
 
@@ -57,18 +54,18 @@ pub const Bot = struct {
             for (formdata.parameters.items) |parameter| {
                 switch (parameter.val) {
                     .string => self.allocator.free(parameter.val.string),
-                    else => {}
+                    else => {},
                 }
             }
         }
 
-        var url = try std.fmt.allocPrint(self.allocator, "https://api.telegram.org/bot{s}/{s}", .{self.token, method});
+        var url = try std.fmt.allocPrint(self.allocator, "https://api.telegram.org/bot{s}/{s}", .{ self.token, method });
         defer self.allocator.free(url);
         var response = try http.fetch(url, .{
             .allocator = self.allocator,
             .method = .POST,
             .headers = &[_]http.Header{formdata.contentType()},
-            .body = try formdata.toString()
+            .body = try formdata.toString(),
         });
         defer response.close();
 
@@ -76,11 +73,11 @@ pub const Bot = struct {
         var json_stream = json.TokenStream.init(response.body);
         var ret = try json.parse(types.APIResponse(T), &json_stream, .{
             .allocator = self.allocator,
-            .ignore_unknown_fields = true
+            .ignore_unknown_fields = true,
         });
         errdefer json.parseFree(types.APIResponse(T), ret, .{
             .allocator = self.allocator,
-            .ignore_unknown_fields = true
+            .ignore_unknown_fields = true,
         });
         try std.io.getStdOut().writer().print("{any}\n", .{parameters});
         try std.io.getStdOut().writer().print("{?s}\n", .{ret.description});
@@ -240,7 +237,7 @@ pub const Bot = struct {
     pub fn release(self: *Bot, data: anytype) void {
         json.parseFree(@TypeOf(data), data, .{
             .allocator = self.allocator,
-            .ignore_unknown_fields = true
+            .ignore_unknown_fields = true,
         });
     }
 };
