@@ -8,7 +8,7 @@ pub const Library = struct {
     step: *LibExeObjStep,
 
     pub fn link(self: Library, other: *LibExeObjStep) void {
-        other.addIncludeDir(include_dir);
+        other.addIncludePath(include_dir);
         other.linkLibrary(self.step);
     }
 };
@@ -26,8 +26,8 @@ pub fn create(b: *Builder, target: std.zig.CrossTarget, mode: std.builtin.Mode) 
 
     ret.setTarget(target);
     ret.setBuildMode(mode);
-    ret.addIncludeDir(include_dir);
-    ret.addIncludeDir(library_include);
+    ret.addIncludePath(include_dir);
+    ret.addIncludePath(library_include);
     ret.addCSourceFiles(srcs, &.{});
     ret.linkLibC();
 

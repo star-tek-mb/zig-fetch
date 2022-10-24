@@ -1,6 +1,3 @@
-// Copy from std lib of zig with disabled MissingField error (without json/writer_stream, and without json/test)
-// json.zig:1591 - for disabled error
-
 // JSON parser conforming to RFC8259.
 //
 // https://tools.ietf.org/html/rfc8259
@@ -1561,7 +1558,7 @@ fn parseInternal(
                                     }
                                 }
                                 if (field.is_comptime) {
-                                    if (!try parsesTo(field.field_type, @ptrCast(*const field.field_type, field.default_value.?).*, tokens, child_options)) {
+                                    if (!try parsesTo(field.field_type, @ptrCast(*align(1) const field.field_type, field.default_value.?).*, tokens, child_options)) {
                                         return error.UnexpectedValue;
                                     }
                                 } else {
@@ -1588,12 +1585,12 @@ fn parseInternal(
                 if (!fields_seen[i]) {
                     if (field.default_value) |default_ptr| {
                         if (!field.is_comptime) {
-                            const default = @ptrCast(*const field.field_type, default_ptr).*;
+                            const default = @ptrCast(*align(1) const field.field_type, default_ptr).*;
                             @field(r, field.name) = default;
                         }
                     }// else {
-                    //    return error.MissingField;
-                    //}
+                    //     return error.MissingField;
+                    // }
                 }
             }
             return r;
@@ -1668,7 +1665,7 @@ fn parseInternal(
                             }
 
                             if (ptrInfo.sentinel) |some| {
-                                const sentinel_value = @ptrCast(*const ptrInfo.child, some).*;
+                                const sentinel_value = @ptrCast(*align(1) const ptrInfo.child, some).*;
                                 try arraylist.append(sentinel_value);
                                 const output = arraylist.toOwnedSlice();
                                 return output[0 .. output.len - 1 :sentinel_value];
